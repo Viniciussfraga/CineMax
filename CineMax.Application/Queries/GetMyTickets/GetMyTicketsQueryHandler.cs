@@ -24,9 +24,9 @@ namespace CineMax.Application.Queries.GetMyTickets
                 return null;
             }
 
-            var ticketViewModel = await _ticketRepository.GetTicketsByClientIdAsync(client.Id);
+            var ticketsViewModel = await _ticketRepository.GetTicketsByClientIdAsync(client.Id);
 
-            return ticketViewModel;
+            return ticketsViewModel;
         }
     }
 }
