@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace CineMax.API.Controllers
 {
     [Route("api/user")]
-    public class UsersControllers : ControllerBase
+    public class UsersControllers : CineMaxBaseController
     {
         private readonly IMediator _mediator;
         private IAuthService _authService;

@@ -1,16 +1,17 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
 
 namespace CineMax.API.Controllers
 {
+    [Authorize]
     public class CineMaxBaseController : ControllerBase
     {
         [NonAction]
         public virtual Guid ExtractUserIdFromToken()
         {
 
-            HttpRequest request = HttpContext.Request ;
+            HttpRequest request = HttpContext.Request;
 
             string token = request.Headers["Authorization"].ToString().Replace("Bearer ", "");
             var tokenHandler = new JwtSecurityTokenHandler();

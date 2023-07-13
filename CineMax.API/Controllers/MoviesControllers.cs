@@ -12,7 +12,7 @@ namespace CineMax.API.Controllers
 {
     [Route("api/movies")]
     [Authorize]
-    public class MoviesControllers : ControllerBase
+    public class MoviesControllers : CineMaxBaseController
     {
         private readonly IMediator _mediator;
 
