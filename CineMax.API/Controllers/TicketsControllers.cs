@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Mvc;
 namespace CineMax.API.Controllers
 {
     [Route("api/tickets")]
-    [Authorize]
     public class TicketsControllers : CineMaxBaseController
     {
         private readonly IMediator _mediator;
@@ -32,15 +31,15 @@ namespace CineMax.API.Controllers
 
             var tickets = await _mediator.Send(query);
 
-            if(tickets == null)
-              return NotFound("Tickets not found in database for that customer.");
+            if (tickets == null)
+                return NotFound("Tickets not found in database for that customer.");
 
             return Ok(tickets);
         }
 
         [HttpPost("buy/{sectionId}")]
         [Authorize(Roles = Roles.ClientBasic)]
-        public async Task<IActionResult> BuyTicket([FromRoute] int sectionId,[FromBody] BuyTicketCommand command)
+        public async Task<IActionResult> BuyTicket([FromRoute] int sectionId, [FromBody] BuyTicketCommand command)
         {
             Guid userId = ExtractUserIdFromToken();
             command.UserId = userId;
@@ -49,20 +48,21 @@ namespace CineMax.API.Controllers
 
             var response = await _mediator.Send(command);
 
-            if(response.Errors.Any())
+            if (response.Errors.Any())
                 return BadRequest(response);
 
-            return Ok(response);    
+            return Ok(response);
         }
 
         [HttpPut("/repay/{ticketId}")]
         [Authorize(Roles = Roles.ClientBasic)]
-        public async Task<IActionResult> RequestRefundTicket([FromRoute] int ticketId, [FromBody] RepayTicketCommand command)
+        public async Task<IActionResult> RequestRefundTicket([FromRoute] int ticketId)
         {
+            var command = new RepayTicketCommand { };
             Guid userId = ExtractUserIdFromToken();
             command.UserId = userId;
             command.TicketId = ticketId;
-            
+
             var response = await _mediator.Send(command);
 
             if (response.TicketBelongstoCustomer == false)
@@ -76,8 +76,9 @@ namespace CineMax.API.Controllers
 
         [HttpGet("/pending-repay")]
         [Authorize(Roles = Roles.Admin)]
-        public async Task<IActionResult> GetTicketsPendingRepay(GetTicketsPendingRepayQuery query)
+        public async Task<IActionResult> GetTicketsPendingRepay()
         {
+            var query = new GetTicketsPendingRepayQuery { };
             var TicketsPendingRepay = await _mediator.Send(query);
 
             if (TicketsPendingRepay is null)
