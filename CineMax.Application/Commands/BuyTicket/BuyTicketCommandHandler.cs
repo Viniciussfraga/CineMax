@@ -30,18 +30,12 @@ namespace CineMax.Application.Commands.BuyTicket
             var section = await _sectionRepository.GetByIdAsync(s => s.Id == request.SectionId);
             var response = new BuyTicketViewModel { };
 
-            if (section.Status != SectionStatusEnum.Created)
-            {
-                response.AddError("Section " + section.Name + " no disponible");
-
-                return response;    
-            }
-
-            if (section.TicketsDisponible <= 0)
-            {
-                response.Errors.Add("Tickets exhausted");
+            if (!IsSectionAvailable(section, response))
                 return response;
-            }
+
+            if (!AreTicketsAvailable(section, response))
+                return response;
+
             var seatSectionStatus = (await _roomRepository.GetSeatsStatusBySection(request.SectionId, request.SeatId)).First();
 
             if (!seatSectionStatus.IsDisponible)
@@ -49,6 +43,7 @@ namespace CineMax.Application.Commands.BuyTicket
                 response.AddError("The seat " + seatSectionStatus.Position + " no disponible");
                 return response;
             }
+
             PaymentRequest paymentRequest = new PaymentRequest
             {
                 Cpf = request.Cpf,
@@ -65,7 +60,7 @@ namespace CineMax.Application.Commands.BuyTicket
                 response.AddError("Payment Recused");
                 return response;
             }
-            
+
             int clientId = (await _clientRepository.GetByIdAsync(c => c.UserId == request.UserId)).Id;
 
             Ticket ticket = new Ticket(section.Id, clientId, seatSectionStatus.Id);
@@ -74,16 +69,35 @@ namespace CineMax.Application.Commands.BuyTicket
             section.SubtractTicketsDisponible();
             await _sectionRepository.UpdateAsync(section);
 
-            var seatStatus = await _roomRepository.GetSectionSeatAsync(section.Id,seatSectionStatus.Id);
+            var seatStatus = await _roomRepository.GetSectionSeatAsync(section.Id, seatSectionStatus.Id);
 
             seatStatus.ChangeAvailability(false);
             await _roomRepository.UpdateSectionSeatAsync(seatStatus);
 
             if (response.Errors.Count == 0)
-            {
                 response.Success = true;
-            }
+
             return response;
+        }
+
+        private bool IsSectionAvailable(Section section, BuyTicketViewModel response)
+        {
+            if (section.Status != SectionStatusEnum.Created)
+            {
+                response.AddError("Section " + section.Name + " is not available");
+                return false;
+            }
+            return true;
+        }
+
+        private bool AreTicketsAvailable(Section section, BuyTicketViewModel response)
+        {
+            if (section.TicketsDisponible <= 0)
+            {
+                response.Errors.Add("Tickets exhausted");
+                return false;
+            }
+            return true;
         }
     }
 }
